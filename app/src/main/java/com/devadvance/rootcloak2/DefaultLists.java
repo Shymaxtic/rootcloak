@@ -45,7 +45,9 @@ public class DefaultLists {
             "nl.ziggo.android.tv",
             "com.orange.fr.ocs",
             "com.adb.android.app.iti",
-            "com.mobileiron"};
+            "com.mobileiron",
+            "com.ytheekshana.deviceinfo",
+            "com.smilegate.magicshop.stove.google"};
 
     public static final String[] DEFAULT_KEYWORD_LIST = new String[]{"supersu", "superuser", "Superuser",
             "noshufou", "xposed", "rootcloak",

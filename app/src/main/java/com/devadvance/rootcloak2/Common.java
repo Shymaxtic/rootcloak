@@ -26,8 +26,8 @@ public class Common {
         abstract Set<String> getDefaultSet();
 
         public SharedPreferences getSharedPreferences(PreferenceActivity activity) {
-            activity.getPreferenceManager().setSharedPreferencesMode(Context.MODE_WORLD_READABLE);
-            return activity.getSharedPreferences(getPrefKey(), Context.MODE_WORLD_READABLE);
+            activity.getPreferenceManager().setSharedPreferencesMode(Context.MODE_PRIVATE);
+            return activity.getSharedPreferences(getPrefKey(), Context.MODE_PRIVATE);
         }
     }
 

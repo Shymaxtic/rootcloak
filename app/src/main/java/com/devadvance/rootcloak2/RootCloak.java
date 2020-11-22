@@ -31,6 +31,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 import de.robv.android.xposed.callbacks.XCallback;
 
 
+import static com.devadvance.rootcloak2.Utility.log;
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 import static de.robv.android.xposed.XposedHelpers.findConstructorExact;
 
@@ -43,19 +44,26 @@ public class RootCloak implements IXposedHookLoadPackage {
     private Set<String> keywordSet;
     private Set<String> commandSet;
     private Set<String> libnameSet;
-    private boolean debugPref;
+    private boolean debugPref = true;
     private boolean isRootCloakLoadingPref = false;
 
     public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {
+        if (debugPref) {
+            log("Found app: " + lpparam.packageName);
+        }
         isRootCloakLoadingPref = true;
         Set<String> tmpAppSet = loadSetFromPrefs(Common.APPS); // Load prefs for any app. This way we can determine if it matches the list of apps to hide root from.
-//		if (debugPref) {
-//			XposedBridge.log("Found app: " + lpparam.packageName);
-//		}
+//        String debug_ = "";
+//        Iterator value_ = tmpAppSet.iterator();
+//        while (value_.hasNext()) {
+//            debug_ += value_.next() + "\n" ;
+//        }
+//        log("set loaded " + debug_);
 
         if (!(tmpAppSet.contains(lpparam.packageName))) { // If the app doesn't match, don't hook into anything, and just return.
             isRootCloakLoadingPref = false;
         } else {
+            log("Loaded app: " + lpparam.packageName);
             appSet = tmpAppSet;
             keywordSet = loadSetFromPrefs(Common.KEYWORDS);
             commandSet = loadSetFromPrefs(Common.COMMANDS);
@@ -63,9 +71,9 @@ public class RootCloak implements IXposedHookLoadPackage {
             initSettings();
             isRootCloakLoadingPref = false;
 
-            if (debugPref) {
-                XposedBridge.log("Loaded app: " + lpparam.packageName);
-            }
+//            if (debugPref) {
+                log("Loaded app: " + lpparam.packageName);
+//            }
 
             // Do all of the hooks
             initOther(lpparam);
@@ -89,15 +97,15 @@ public class RootCloak implements IXposedHookLoadPackage {
         // If test-keys, change to release-keys
         if (!Build.TAGS.equals("release-keys")) {
             if (debugPref) {
-                XposedBridge.log("Original build tags: " + Build.TAGS);
+                log("Original build tags: " + Build.TAGS);
             }
             XposedHelpers.setStaticObjectField(android.os.Build.class, "TAGS", "release-keys");
             if (debugPref) {
-                XposedBridge.log("New build tags: " + Build.TAGS);
+                log("New build tags: " + Build.TAGS);
             }
         } else {
             if (debugPref) {
-                XposedBridge.log("No need to change build tags: " + Build.TAGS);
+                log("No need to change build tags: " + Build.TAGS);
             }
         }
 
@@ -108,7 +116,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                 if (((String) param.args[0]).equals("ro.build.selinux")) {
                     param.setResult("1");
                     if (debugPref) {
-                        XposedBridge.log("SELinux is enforced.");
+                        log("SELinux is enforced.");
                     }
                 }
             }
@@ -123,7 +131,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                 if (classname != null && (classname.equals("de.robv.android.xposed.XposedBridge") || classname.equals("de.robv.android.xposed.XC_MethodReplacement"))) {
                     param.setThrowable(new ClassNotFoundException());
                     if (debugPref) {
-                        XposedBridge.log("Found and hid Xposed class name: " + classname);
+                        log("Found and hid Xposed class name: " + classname);
                     }
                 }
             }
@@ -145,7 +153,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (param.args[0] != null) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor: " + ((String) param.args[0]));
+                        log("File: Found a File constructor: " + ((String) param.args[0]));
                     }
                 }
 
@@ -156,17 +164,17 @@ public class RootCloak implements IXposedHookLoadPackage {
 
                 if (((String) param.args[0]).endsWith("su")) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor ending with su");
+                        log("File: Found a File constructor ending with su");
                     }
                     param.args[0] = "/system/xbin/" + FAKE_FILE;
                 } else if (((String) param.args[0]).endsWith("busybox")) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor ending with busybox");
+                        log("File: Found a File constructor ending with busybox");
                     }
                     param.args[0] = "/system/xbin/" + FAKE_FILE;
                 } else if (stringContainsFromSet(((String) param.args[0]), keywordSet)) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor with word super, noshufou, or chainfire");
+                        log("File: Found a File constructor with word super, noshufou, or chainfire");
                     }
                     param.args[0] = "/system/app/" + FAKE_FILE + ".apk";
                 }
@@ -183,7 +191,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (param.args[0] != null && param.args[1] != null) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor: " + ((String) param.args[0]) + ", with: " + ((String) param.args[1]));
+                        log("File: Found a File constructor: " + ((String) param.args[0]) + ", with: " + ((String) param.args[1]));
                     }
                 }
 
@@ -194,17 +202,17 @@ public class RootCloak implements IXposedHookLoadPackage {
 
                 if (((String) param.args[1]).equalsIgnoreCase("su")) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor with filename su");
+                        log("File: Found a File constructor with filename su");
                     }
                     param.args[1] = FAKE_FILE;
                 } else if (((String) param.args[1]).contains("busybox")) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor ending with busybox");
+                        log("File: Found a File constructor ending with busybox");
                     }
                     param.args[1] = FAKE_FILE;
                 } else if (stringContainsFromSet(((String) param.args[1]), keywordSet)) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a File constructor with word super, noshufou, or chainfire");
+                        log("File: Found a File constructor with word super, noshufou, or chainfire");
                     }
                     param.args[1] = FAKE_FILE + ".apk";
                 }
@@ -222,7 +230,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (param.args[0] != null) {
                     if (debugPref) {
-                        XposedBridge.log("File: Found a URI File constructor: " + ((URI) param.args[0]).toString());
+                        log("File: Found a URI File constructor: " + ((URI) param.args[0]).toString());
                     }
                 }
             }
@@ -244,7 +252,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable { // Hook after getIntalledApplications is called
                 if (debugPref) {
-                    XposedBridge.log("Hooked getInstalledApplications");
+                    log("Hooked getInstalledApplications");
                 }
 
                 List<ApplicationInfo> packages = (List<ApplicationInfo>) param.getResult(); // Get the results from the method call
@@ -259,7 +267,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                     if (tempPackageName != null && stringContainsFromSet(tempPackageName, keywordSet)) {
                         iter.remove();
                         if (debugPref) {
-                            XposedBridge.log("Found and hid package: " + tempPackageName);
+                            log("Found and hid package: " + tempPackageName);
                         }
                     }
                 }
@@ -278,7 +286,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable { // Hook after getInstalledPackages is called
                 if (debugPref) {
-                    XposedBridge.log("Hooked getInstalledPackages");
+                    log("Hooked getInstalledPackages");
                 }
 
                 List<PackageInfo> packages = (List<PackageInfo>) param.getResult(); // Get the results from the method call
@@ -293,7 +301,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                     if (tempPackageName != null && stringContainsFromSet(tempPackageName, keywordSet)) {
                         iter.remove();
                         if (debugPref) {
-                            XposedBridge.log("Found and hid package: " + tempPackageName);
+                            log("Found and hid package: " + tempPackageName);
                         }
                     }
                 }
@@ -312,14 +320,14 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (debugPref) {
-                    XposedBridge.log("Hooked getPackageInfo");
+                    log("Hooked getPackageInfo");
                 }
                 String name = (String) param.args[0];
 
                 if (name != null && stringContainsFromSet(name, keywordSet)) {
                     param.args[0] = FAKE_PACKAGE; // Set a fake package name
                     if (debugPref) {
-                        XposedBridge.log("Found and hid package: " + name);
+                        log("Found and hid package: " + name);
                     }
                 }
             }
@@ -337,13 +345,13 @@ public class RootCloak implements IXposedHookLoadPackage {
 
                 String name = (String) param.args[0];
                 if (debugPref) {
-                    XposedBridge.log("Hooked getApplicationInfo : " + name);
+                    log("Hooked getApplicationInfo : " + name);
                 }
 
                 if (name != null && stringContainsFromSet(name, keywordSet)) {
                     param.args[0] = FAKE_APPLICATION; // Set a fake application name
                     if (debugPref) {
-                        XposedBridge.log("Found and hid application: " + name);
+                        log("Found and hid application: " + name);
                     }
                 }
             }
@@ -365,7 +373,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable { // Hook after getRunningServices is called
                 if (debugPref) {
-                    XposedBridge.log("Hooked getRunningServices");
+                    log("Hooked getRunningServices");
                 }
 
                 List<ActivityManager.RunningServiceInfo> services = (List<RunningServiceInfo>) param.getResult(); // Get the results from the method call
@@ -380,7 +388,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                     if (tempProcessName != null && stringContainsFromSet(tempProcessName, keywordSet)) {
                         iter.remove();
                         if (debugPref) {
-                            XposedBridge.log("Found and hid service: " + tempProcessName);
+                            log("Found and hid service: " + tempProcessName);
                         }
                     }
                 }
@@ -399,7 +407,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable { // Hook after getRunningTasks is called
                 if (debugPref) {
-                    XposedBridge.log("Hooked getRunningTasks");
+                    log("Hooked getRunningTasks");
                 }
 
                 List<ActivityManager.RunningTaskInfo> services = (List<RunningTaskInfo>) param.getResult(); // Get the results from the method call
@@ -414,7 +422,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                     if (tempBaseActivity != null && stringContainsFromSet(tempBaseActivity, keywordSet)) {
                         iter.remove();
                         if (debugPref) {
-                            XposedBridge.log("Found and hid BaseActivity: " + tempBaseActivity);
+                            log("Found and hid BaseActivity: " + tempBaseActivity);
                         }
                     }
                 }
@@ -433,7 +441,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void afterHookedMethod(MethodHookParam param) throws Throwable { // Hook after getRunningAppProcesses is called
                 if (debugPref) {
-                    XposedBridge.log("Hooked getRunningAppProcesses");
+                    log("Hooked getRunningAppProcesses");
                 }
 
                 List<ActivityManager.RunningAppProcessInfo> processes = (List<ActivityManager.RunningAppProcessInfo>) param.getResult(); // Get the results from the method call
@@ -448,7 +456,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                     if (tempProcessName != null && stringContainsFromSet(tempProcessName, keywordSet)) {
                         iter.remove();
                         if (debugPref) {
-                            XposedBridge.log("Found and hid process: " + tempProcessName);
+                            log("Found and hid process: " + tempProcessName);
                         }
                     }
                 }
@@ -473,7 +481,7 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (debugPref) {
-                    XposedBridge.log("Hooked Runtime.exec");
+                    log("Hooked Runtime.exec");
                 }
 
                 String[] execArray = (String[]) param.args[0]; // Grab the tokenized array of commands
@@ -484,12 +492,12 @@ public class RootCloak implements IXposedHookLoadPackage {
                         for (String temp : execArray) {
                             tempString = tempString + " " + temp;
                         }
-                        XposedBridge.log(tempString);
+                        log(tempString);
                     }
 
                     if (stringEndsWithFromSet(firstParam, commandSet)) { // Check if the firstParam is one of the keywords we want to filter
                         if (debugPref) {
-                            XposedBridge.log("Found blacklisted command at the end of the string: " + firstParam);
+                            log("Found blacklisted command at the end of the string: " + firstParam);
                         }
 
                         // A bunch of logic follows since the solution depends on which command is being called
@@ -528,14 +536,14 @@ public class RootCloak implements IXposedHookLoadPackage {
                             for (String temp : (String[]) param.args[0]) {
                                 tempString = tempString + " " + temp;
                             }
-                            XposedBridge.log(tempString);
+                            log(tempString);
                         }
                     }
 
 
                 } else {
                     if (debugPref) {
-                        XposedBridge.log("Null or empty array on exec");
+                        log("Null or empty array on exec");
                     }
                 }
             }
@@ -549,14 +557,14 @@ public class RootCloak implements IXposedHookLoadPackage {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (debugPref) {
-                    XposedBridge.log("Hooked loadLibrary");
+                    log("Hooked loadLibrary");
                 }
                 String libname = (String) param.args[0];
 
                 if (libname != null && stringContainsFromSet(libname, libnameSet)) { // If we found one of the libraries we block, let's prevent it from being loaded
                     param.setResult(null);
                     if (debugPref) {
-                        XposedBridge.log("Loading of library " + libname + " disabled.");
+                        log("Loading of library " + libname + " disabled.");
                     }
                 }
             }
@@ -569,7 +577,7 @@ public class RootCloak implements IXposedHookLoadPackage {
         XposedBridge.hookMethod(processBuilderConstructor2, new XC_MethodHook(XCallback.PRIORITY_HIGHEST) {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                XposedBridge.log("Hooked ProcessBuilder");
+                log("Hooked ProcessBuilder");
                 if (param.args[0] != null) {
                     String[] cmdArray = (String[]) param.args[0];
                     if (debugPref) {
@@ -577,7 +585,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                         for (String temp : cmdArray) {
                             tempString = tempString + " " + temp;
                         }
-                        XposedBridge.log(tempString);
+                        log(tempString);
                     }
                     if (stringEndsWithFromSet(cmdArray[0], commandSet)) {
                         cmdArray[0] = FAKE_COMMAND;
@@ -589,7 +597,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                         for (String temp : (String[]) param.args[0]) {
                             tempString = tempString + " " + temp;
                         }
-                        XposedBridge.log(tempString);
+                        log(tempString);
                     }
                 }
             }
@@ -609,7 +617,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                 if (setting != null && Settings.Global.ADB_ENABLED.equals(setting)) { // Hide ADB being on from an app
                     param.setResult(0);
                     if (debugPref) {
-                        XposedBridge.log("Hooked ADB debugging info, adb status is off");
+                        log("Hooked ADB debugging info, adb status is off");
                     }
                 }
             }
@@ -619,7 +627,8 @@ public class RootCloak implements IXposedHookLoadPackage {
     private void initSettings() {
         final XSharedPreferences prefSettings = new XSharedPreferences(Common.PACKAGE_NAME, Common.PREFS_SETTINGS);
         prefSettings.makeWorldReadable();
-        debugPref = prefSettings.getBoolean(Common.DEBUG_KEY, false);
+//        debugPref = prefSettings.getBoolean(Common.DEBUG_KEY, false);
+        debugPref = true;
     }
 
     /**
