@@ -5,14 +5,14 @@ def aliasName = hasProperty('ALIAS_NAME') ? ALIAS_NAME : System.getenv('ALIAS_NA
 def aliasPass = hasProperty('ALIAS_PASS') ? ALIAS_PASS : System.getenv('ALIAS_PASS')
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "com.devadvance.rootcloak2"
-        minSdkVersion 16
-        targetSdkVersion 23
-        versionCode 13
+        minSdkVersion 23
+        targetSdkVersion 30
+        versionCode 1
         versionName "2.1.1"
     }
 
