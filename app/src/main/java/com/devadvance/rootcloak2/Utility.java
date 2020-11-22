@@ -5,7 +5,7 @@ import android.util.Log;
 import de.robv.android.xposed.XposedBridge;
 
 public class Utility {
-    final static String TAG = "ROOTCLOAK";
+    final static String TAG = "AndroidFaker";
     public static void log(String message) {
         XposedBridge.log("[" + TAG + "] " + message);
     }
