@@ -47,14 +47,15 @@ public class DefaultLists {
             "com.adb.android.app.iti",
             "com.mobileiron",
             "com.ytheekshana.deviceinfo",
-            "com.smilegate.magicshop.stove.google"};
+            "com.smilegate.magicshop.stove.google",
+            "com.smilegate.magicshop.stove.google:report_service"};
 
     public static final String[] DEFAULT_KEYWORD_LIST = new String[]{"supersu", "superuser", "Superuser",
             "noshufou", "xposed", "rootcloak",
             "chainfire", "titanium", "Titanium",
             "substrate", "greenify", "daemonsu",
             "root", "busybox", "titanium",
-            ".tmpsu", "su", "rootcloak2", "edxposed", "framaroot", "magisk"};
+            ".tmpsu", "su", "rootcloak2", "edxposed", "framaroot", "magisk", "I"};
 
     public static final String[] DEFAULT_COMMAND_LIST = new String[]{"su", "which", "busybox", "pm", "am", "sh", "ps"};
 

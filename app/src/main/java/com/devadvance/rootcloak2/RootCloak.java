@@ -36,10 +36,10 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 import static de.robv.android.xposed.XposedHelpers.findConstructorExact;
 
 public class RootCloak implements IXposedHookLoadPackage {
-    private static final String FAKE_COMMAND = "FAKEJUNKCOMMAND";
-    private static final String FAKE_FILE = "FAKEJUNKFILE";
-    private static final String FAKE_PACKAGE = "FAKE.JUNK.PACKAGE";
-    private static final String FAKE_APPLICATION = "FAKE.JUNK.APPLICATION";
+    private static final String FAKE_COMMAND = "DONGAOCOMMAND";
+    private static final String FAKE_FILE = "DONGAOFILE";
+    private static final String FAKE_PACKAGE = "DONGAOPACKAGE";
+    private static final String FAKE_APPLICATION = "DONGAOAPPLICATION";
     private Set<String> appSet;
     private Set<String> keywordSet;
     private Set<String> commandSet;
@@ -270,13 +270,13 @@ public class RootCloak implements IXposedHookLoadPackage {
                         log("Found and hid package: " + tempPackageName);
                     }
                 }
+                param.setResult(packages); // Set the return value to the clean list
                 String info_ = "";
                 iter = packages.iterator();
                 while (iter.hasNext()) {
                     info_ += iter.next().packageName + " ";
                 }
                 log("After getInstalledPackages " + info_);
-                param.setResult(packages); // Set the return value to the clean list
             }
         });
 
@@ -312,9 +312,7 @@ public class RootCloak implements IXposedHookLoadPackage {
 
                 if (name != null && stringContainsFromSet(name, keywordSet)) {
                     param.args[0] = FAKE_APPLICATION; // Set a fake application name
-                    if (debugPref) {
-                        log("Found and hid application: " + name);
-                    }
+                    log("Found and hid application: " + name);
                 }
             }
         });
@@ -347,13 +345,17 @@ public class RootCloak implements IXposedHookLoadPackage {
                     tempProcessName = tempService.process;
                     if (tempProcessName != null && stringContainsFromSet(tempProcessName, keywordSet)) {
                         iter.remove();
-                        if (debugPref) {
-                            log("Found and hid service: " + tempProcessName);
-                        }
+                        log("Found and hid service: " + tempProcessName);
                     }
                 }
 
                 param.setResult(services); // Set the return value to the clean list
+                String info_ = "";
+                iter = services.iterator();
+                while (iter.hasNext()) {
+                    info_ += iter.next().process + " ";
+                }
+                log("After getRunningServices " + info_);
             }
         });
 
@@ -379,13 +381,17 @@ public class RootCloak implements IXposedHookLoadPackage {
                     tempBaseActivity = tempTask.baseActivity.flattenToString(); // Need to make it a string for comparison
                     if (tempBaseActivity != null && stringContainsFromSet(tempBaseActivity, keywordSet)) {
                         iter.remove();
-                        if (debugPref) {
-                            log("Found and hid BaseActivity: " + tempBaseActivity);
-                        }
+                        log("Found and hid BaseActivity: " + tempBaseActivity);
                     }
                 }
 
                 param.setResult(services); // Set the return value to the clean list
+                String info_ = "";
+                iter = services.iterator();
+                while (iter.hasNext()) {
+                    info_ += iter.next().baseActivity.flattenToString() + " ";
+                }
+                log("After getRunningTasks " + info_);
             }
         });
 
@@ -411,13 +417,17 @@ public class RootCloak implements IXposedHookLoadPackage {
                     tempProcessName = tempProcess.processName;
                     if (tempProcessName != null && stringContainsFromSet(tempProcessName, keywordSet)) {
                         iter.remove();
-                        if (debugPref) {
-                            log("Found and hid process: " + tempProcessName);
-                        }
+                        log("Found and hid process: " + tempProcessName);
                     }
                 }
 
                 param.setResult(processes); // Set the return value to the clean list
+                String info_ = "";
+                iter = processes.iterator();
+                while (iter.hasNext()) {
+                    info_ += iter.next().processName + " ";
+                }
+                log("After getRunningAppProcesses " + info_);
             }
         });
     }
@@ -508,8 +518,8 @@ public class RootCloak implements IXposedHookLoadPackage {
         findAndHookMethod("java.lang.Runtime", lpparam.classLoader, "loadLibrary", String.class, ClassLoader.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                log("Hooked loadLibrary");
                 String libname = (String) param.args[0];
+                log("Hooked loadLibrary: " + libname);
 
                 if (libname != null && stringContainsFromSet(libname, libnameSet)) { // If we found one of the libraries we block, let's prevent it from being loaded
                     param.setResult(null);
@@ -564,9 +574,7 @@ public class RootCloak implements IXposedHookLoadPackage {
                 String setting = (String) param.args[1];
                 if (setting != null && Settings.Global.ADB_ENABLED.equals(setting)) { // Hide ADB being on from an app
                     param.setResult(0);
-                    if (debugPref) {
-                        log("Hooked ADB debugging info, adb status is off");
-                    }
+                    log("Hooked ADB debugging info, adb status is off");
                 }
             }
         });
